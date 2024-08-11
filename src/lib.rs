@@ -44,10 +44,12 @@ mod tests {
 
     #[test]
     fn expressions_priority_eq() {
+        assert_ne!(core::Actions::Derivative, core::Actions::Derivative);
         assert_eq!(core::Actions::Add, core::Actions::Add);
         assert_eq!(core::Actions::Mul, core::Actions::Mul);
         assert_eq!(core::Actions::Div, core::Actions::Div);
         assert_eq!(core::Actions::Pow, core::Actions::Pow);
+        assert_eq!(core::Actions::Derivative, core::Actions::Derivative);
         assert_eq!(core::Actions::Brackets(Box::from(core::Expression::default()),
                                            core::Brackets::Round),
                    core::Actions::Brackets(Box::from(core::Expression::default()),
