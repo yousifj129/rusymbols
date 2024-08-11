@@ -3,7 +3,8 @@ use std::fmt;
 use std::cmp::Ordering;
 
 
-const PRIORITY: [Actions; 5] = [
+const PRIORITY: [Actions; 6] = [
+    Actions::Derivative,
     Actions::Sub,
     Actions::Add,
     Actions::Mul,
@@ -35,6 +36,8 @@ pub enum Actions {
     Val(f64),
     /// Expression in parentheses. Brackets also shows the shape of the brackets.
     Brackets(Box<Expression>, Brackets),
+    /// Derivative
+    Derivative,
 }
 
 impl Default for Actions {
@@ -59,9 +62,11 @@ impl fmt::Display for Actions {
                 f.write_str(&expr.to_string())?;
                 f.write_str(right)
             },
+            Actions::Derivative => f.write_str(literals::SYMBOL_DERIVATIVE),
         }
     }
 }
+
 
 /// These "actions" can be compared with each other to determine priority.
 /// The higher the priority, the earlier the value will be calculated.
@@ -79,12 +84,13 @@ impl PartialEq for Actions {
             (Actions::Add, Actions::Add) => true,
             (Actions::Sub, Actions::Add) => true,
             (Actions::Add, Actions::Sub) => true,
+            (Actions::Derivative, Actions::Derivative) => true,
 
             (Actions::Mul, Actions::Mul) => true,
             (Actions::Div, Actions::Div) => true,
             (Actions::Div, Actions::Mul) => true,
             (Actions::Mul, Actions::Div) => true,
-
+            
             (Actions::Pow, Actions::Pow) => true,
             (Actions::Val(..), Actions::Val(..)) => true,
             (Actions::Var(..), Actions::Var(..)) => true,
@@ -95,8 +101,6 @@ impl PartialEq for Actions {
         }
     }
 }
-
-
 /// These "actions" can be compared with each other to determine priority.
 /// The higher the priority, the earlier the value will be calculated.
 ///

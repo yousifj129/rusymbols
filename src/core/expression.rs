@@ -3,6 +3,7 @@ use std::ops;
 use std::collections::HashMap;
 
 use crate::core;
+use crate::core::actions;
 use crate::core::Actions;
 
 /// # `Expression` struct
@@ -209,10 +210,31 @@ impl Expression {
                                 -self.args[1].clone(),
                                 Actions::Add).eval_args(args)
             }
+            Actions::Derivative => self.derivative().eval_args(args),
+        }
+    }
+    pub fn derivative(&self) -> Expression {
+        match &self.kind {
+            Actions::Pow => {
+                let base = &self.args[0];
+                let exponent = &self.args[1];
+                if let Actions::Val(exp_val) = exponent.kind {
+                    let new_exponent = Expression::new_val(exp_val - 1.0);
+                    let coefficient = Expression::new_val(exp_val);
+                    Expression::new(
+                        coefficient,
+                        Expression::new(base.clone(), new_exponent, Actions::Pow),
+                        Actions::Mul
+                    )
+                } else {
+                    // For non-constant exponents, we need a more complex implementation
+                    unimplemented!("Derivative of power with non-constant exponent not implemented")
+                }
+            },
+            _ => unimplemented!("Derivative not implemented for this action"),
         }
     }
 }
-
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self.kind.clone() {
@@ -278,5 +300,15 @@ impl ops::Sub for Expression {
         self = self.brace_if(Actions::Add);
         rhs = rhs.brace_if(Actions::Add);
         Expression::new(self, rhs, Actions::Sub)
+    }
+}
+
+impl ops::Derivative for Expression {
+    type Output = Expression;
+
+    fn derivative(mut self, mut rhs: Self) -> Self::Output {
+        self = self.brace_if(Actions::Derivative);
+        rhs = rhs.brace_if(Actions::Derivative);
+        Expression::new(self, rhs, Actions::Derivative)
     }
 }
